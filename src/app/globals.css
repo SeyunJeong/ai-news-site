@@ -1,13 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f0eb;
+  --foreground: #2c2520;
+  --accent: #b8860b;
+  --accent-soft: rgba(184, 134, 11, 0.1);
+  --card-bg: #ffffff;
+  --card-border: #e0d5c8;
+  --muted: #8a7e72;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #121018;
+  --foreground: #e8e0d6;
+  --accent: #d4a843;
+  --accent-soft: rgba(212, 168, 67, 0.1);
+  --card-bg: #1a1520;
+  --card-border: #2a2435;
+  --muted: #7a7068;
 }
 
 @theme inline {
@@ -21,6 +31,44 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Marble-like texture background */
+.dark body,
+body:is(.dark *) {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 67, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 115, 85, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(100, 80, 120, 0.03) 0%, transparent 50%),
+    var(--background);
+}
+
+/* Subtle stone grain overlay on the whole page */
+.agora-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+.dark .agora-bg {
+  opacity: 0.04;
+}
+
+/* Decorative top border — Greek key inspired */
+.greek-border {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent) 20%,
+    var(--accent) 80%,
+    transparent 100%
+  );
+  opacity: 0.4;
 }
 
 /* Hide scrollbar for filter tabs */

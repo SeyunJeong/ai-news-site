@@ -53,7 +53,7 @@ export default function NewsCard({ article, onClick }: NewsCardProps) {
       onClick={() => onClick(article)}
       className="block group cursor-pointer"
     >
-      <article className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-md">
+      <article className="p-4 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:border-[var(--accent)]/40 transition-all hover:shadow-md hover:shadow-[var(--accent)]/5">
         {/* Top meta row */}
         <div className="flex items-center gap-2 mb-2 text-xs">
           <span className={`px-2 py-0.5 rounded-full font-medium ${sourceColor}`}>
@@ -68,7 +68,7 @@ export default function NewsCard({ article, onClick }: NewsCardProps) {
         </div>
 
         {/* Title */}
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-500 transition-colors leading-snug mb-1">
+        <h2 className="text-base font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors leading-snug mb-1">
           {article.title_ko || article.title}
         </h2>
 

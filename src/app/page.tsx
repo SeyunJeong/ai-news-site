@@ -16,22 +16,27 @@ export default async function Home() {
   });
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main className="max-w-3xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h2 className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
-            {today}
-          </h2>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            Today&apos;s AI News
-          </p>
-        </div>
-        <NewsFeed initialArticles={articles} total={total} />
-      </main>
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
-        <p>AI News &mdash; Curated daily for AI engineers</p>
-      </footer>
+    <div className="min-h-screen relative">
+      {/* Stone grain texture overlay */}
+      <div className="agora-bg" />
+
+      <div className="relative z-10">
+        <Header />
+        <main className="max-w-3xl mx-auto px-4 py-6">
+          <div className="mb-6">
+            <h2 className="text-sm text-[var(--muted)] mb-1">
+              {today}
+            </h2>
+            <p className="text-2xl font-bold text-[var(--foreground)]">
+              Today&apos;s <span className="text-[var(--accent)]">Discourse</span>
+            </p>
+          </div>
+          <NewsFeed initialArticles={articles} total={total} />
+        </main>
+        <footer className="border-t border-[var(--card-border)] py-6 text-center text-xs text-[var(--muted)]">
+          <p>MorgenAI &mdash; Where AI engineers gather to discuss</p>
+        </footer>
+      </div>
     </div>
   );
 }

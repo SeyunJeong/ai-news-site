@@ -60,7 +60,7 @@ export default function ArticleModal({ article, onClose }: ArticleModalProps) {
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-2xl"
+        className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -159,7 +159,7 @@ export default function ArticleModal({ article, onClose }: ArticleModalProps) {
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[var(--accent)] hover:opacity-90 text-white dark:text-zinc-900 font-medium transition-colors"
           >
             원문 보기
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

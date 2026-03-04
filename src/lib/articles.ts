@@ -9,6 +9,7 @@ const DEMO_ARTICLES: Article[] = [
     title_ko: "Claude 4 Opus 출시 — 향상된 추론 능력",
     summary_ko:
       "Anthropic이 Claude 4 Opus를 출시했습니다. 이번 버전은 복잡한 추론, 코드 생성, 멀티스텝 태스크에서 크게 개선되었으며, 새로운 도구 사용 패러다임을 도입했습니다.",
+    content_ko: null,
     url: "https://example.com/claude-4",
     source: "Hacker News",
     source_type: "community",
@@ -27,6 +28,7 @@ const DEMO_ARTICLES: Article[] = [
     title_ko: "프로덕션 RAG 시스템 구축: 100건 이상의 배포에서 얻은 교훈",
     summary_ko:
       "RAG 시스템을 프로덕션에 배포할 때 흔히 겪는 문제와 해결법을 정리했습니다. 청킹 전략, 임베딩 모델 선택, 리랭킹, 하이브리드 검색 등 실전 노하우를 공유합니다.",
+    content_ko: null,
     url: "https://example.com/rag-production",
     source: "Reddit",
     source_type: "community",
@@ -45,6 +47,7 @@ const DEMO_ARTICLES: Article[] = [
     title_ko: "Attention이 전부인가? Mamba-2 아키텍처 심층 분석",
     summary_ko:
       "State Space Model 기반의 Mamba-2 아키텍처가 Transformer와 비교해 어떤 장단점이 있는지 분석합니다. 긴 컨텍스트 처리와 추론 효율성에서 주목할 만한 결과를 보여줍니다.",
+    content_ko: null,
     url: "https://example.com/mamba-2",
     source: "Hacker News",
     source_type: "community",
@@ -63,6 +66,7 @@ const DEMO_ARTICLES: Article[] = [
     title_ko: "AI 에이전트 하나로 마이크로서비스 5개를 대체한 방법",
     summary_ko:
       "스타트업에서 고객 지원, 주문 처리, FAQ 응답 등 5개 마이크로서비스를 Claude 기반 에이전트 하나로 통합한 사례입니다. 비용 70% 절감, 응답 시간 3배 개선을 달성했습니다.",
+    content_ko: null,
     url: "https://example.com/agent-microservices",
     source: "Reddit",
     source_type: "community",
@@ -81,6 +85,7 @@ const DEMO_ARTICLES: Article[] = [
     title_ko: "MCP Toolkit 출시: 오픈소스 Model Context Protocol SDK",
     summary_ko:
       "MCP(Model Context Protocol)를 쉽게 구현할 수 있는 오픈소스 SDK가 출시되었습니다. Python/TypeScript 지원, 10줄 코드로 커스텀 MCP 서버를 만들 수 있습니다.",
+    content_ko: null,
     url: "https://example.com/mcp-toolkit",
     source: "Hacker News",
     source_type: "community",
@@ -99,6 +104,7 @@ const DEMO_ARTICLES: Article[] = [
     title_ko: "AGI가 정말 2~3년 안에 올까? 기술적 관점에서의 분석",
     summary_ko:
       "최근 AGI 타임라인 예측이 점점 앞당겨지고 있습니다. 현재 기술의 한계, 스케일링 법칙의 벽, 그리고 새로운 아키텍처 접근법을 통해 현실적인 타임라인을 논의합니다.",
+    content_ko: null,
     url: "https://example.com/agi-timeline",
     source: "Reddit",
     source_type: "community",

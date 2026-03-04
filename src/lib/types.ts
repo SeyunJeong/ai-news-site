@@ -3,6 +3,7 @@ export interface Article {
   title: string;
   title_ko: string | null;
   summary_ko: string | null;
+  content_ko: string | null;
   url: string;
   source: string;
   source_type: "news" | "community" | "paper" | "blog";

@@ -100,8 +100,19 @@ export default function ArticleModal({ article, onClose }: ArticleModalProps) {
           {/* Divider */}
           <div className="border-t border-zinc-100 dark:border-zinc-800 mb-5" />
 
-          {/* Korean summary */}
-          {article.summary_ko ? (
+          {/* Korean content (full interpretation) */}
+          {article.content_ko ? (
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+                전문 해석
+              </h3>
+              <div className="text-[15px] text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line space-y-3">
+                {article.content_ko.split("\n\n").map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+          ) : article.summary_ko ? (
             <div className="mb-6">
               <h3 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
                 요약
@@ -112,7 +123,7 @@ export default function ArticleModal({ article, onClose }: ArticleModalProps) {
             </div>
           ) : (
             <div className="mb-6 text-sm text-zinc-400 dark:text-zinc-500">
-              한국어 요약이 아직 생성되지 않았습니다.
+              한국어 해석이 아직 생성되지 않았습니다.
             </div>
           )}
 

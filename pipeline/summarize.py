@@ -1,6 +1,9 @@
 """
 AI News Pipeline - Korean Summarizer (with article body extraction)
-Fetches articles without Korean summaries, scrapes content, summarizes via GPT-4o-mini.
+Fetches articles without Korean summaries, scrapes content, generates:
+  - title_ko: Korean title
+  - summary_ko: 3-4 line summary (for card)
+  - content_ko: Full Korean interpretation (for modal)
 
 Usage:
   pip install -r requirements.txt
@@ -40,30 +43,32 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
-# Max chars to send to LLM (≈750 tokens) — keeps cost low
 MAX_CONTENT_CHARS = 3000
 
-SYSTEM_PROMPT = """너는 AI/ML 뉴스 전문 편집자야. 기사 본문을 읽고:
-1. 한국어 제목 (자연스럽고 간결하게, 핵심을 살려서)
-2. 한국어 요약 (3-4문장, AI 엔지니어가 읽고 핵심 내용과 의미를 파악할 수 있게)
+SYSTEM_PROMPT_FULL = """너는 AI/ML 뉴스 전문 편집자야. 기사 본문을 읽고 아래 3가지를 만들어:
+
+1. title_ko: 한국어 제목 (간결하고 핵심적으로)
+2. summary_ko: 카드용 요약 (3-4문장, AI 엔지니어가 훑어보고 가치를 판단할 수 있게)
+3. content_ko: 전문 해석 (본문의 전체 맥락과 인사이트를 한국어로 재구성. 핵심 논점, 기술적 디테일, 의미/시사점을 빠뜨리지 않되 불필요한 반복이나 광고성 문구는 제거. 문단 나눠서 읽기 쉽게. 길어도 됨.)
 
 반드시 아래 JSON 형식으로만 응답해:
-{"title_ko": "한국어 제목", "summary_ko": "한국어 요약 3-4문장"}"""
+{"title_ko": "...", "summary_ko": "...", "content_ko": "..."}"""
 
 SYSTEM_PROMPT_TITLE_ONLY = """너는 AI/ML 뉴스 전문 번역가야. 제목만 보고:
-1. 한국어 제목
-2. 한국어 요약 (2문장, 제목에서 추론 가능한 내용)
+1. title_ko: 한국어 제목
+2. summary_ko: 한국어 요약 (2문장)
+3. content_ko: 제목에서 유추 가능한 배경 설명 (3-4문장)
 
 반드시 아래 JSON 형식으로만 응답해:
-{"title_ko": "한국어 제목", "summary_ko": "한국어 요약"}"""
+{"title_ko": "...", "summary_ko": "...", "content_ko": "..."}"""
 
 
 def fetch_unsummarized(limit: int = 20) -> list[dict]:
-    """Fetch articles that don't have Korean summaries yet."""
+    """Fetch articles without Korean content."""
     url = f"{SUPABASE_URL}/rest/v1/articles"
     params = {
         "select": "id,title,url,source,content_type",
-        "title_ko": "is.null",
+        "or": "(title_ko.is.null,content_ko.is.null)",
         "order": "published_at.desc",
         "limit": str(limit),
     }
@@ -78,28 +83,20 @@ def extract_content(url: str) -> str | None:
     """Scrape article URL and extract main text content."""
     if not trafilatura:
         return None
-
     try:
-        # Download with timeout
         downloaded = trafilatura.fetch_url(url)
         if not downloaded:
             return None
-
-        # Extract main content (no comments, no boilerplate)
         text = trafilatura.extract(
             downloaded,
             include_comments=False,
             include_tables=False,
             no_fallback=True,
         )
-
         if not text or len(text) < 100:
             return None
-
-        # Truncate to save tokens
         if len(text) > MAX_CONTENT_CHARS:
             text = text[:MAX_CONTENT_CHARS] + "..."
-
         return text
     except Exception as e:
         print(f"    [Scrape] Failed: {e}")
@@ -107,9 +104,9 @@ def extract_content(url: str) -> str | None:
 
 
 def summarize_article(title: str, url: str, content: str | None) -> dict | None:
-    """Generate Korean title and summary using GPT-4o-mini."""
+    """Generate Korean title, summary, and full content using GPT-4o-mini."""
     if content:
-        system = SYSTEM_PROMPT
+        system = SYSTEM_PROMPT_FULL
         user_msg = f"제목: {title}\n\n본문:\n{content}"
     else:
         system = SYSTEM_PROMPT_TITLE_ONLY
@@ -122,7 +119,7 @@ def summarize_article(title: str, url: str, content: str | None) -> dict | None:
             {"role": "user", "content": user_msg},
         ],
         "temperature": 0.3,
-        "max_tokens": 400,
+        "max_tokens": 2000,
     }
 
     try:
@@ -133,7 +130,7 @@ def summarize_article(title: str, url: str, content: str | None) -> dict | None:
                 "Content-Type": "application/json",
             },
             json=payload,
-            timeout=30,
+            timeout=60,
         )
         if resp.status_code != 200:
             print(f"  [OpenAI] Error: {resp.status_code} - {resp.text[:200]}")
@@ -150,12 +147,10 @@ def summarize_article(title: str, url: str, content: str | None) -> dict | None:
         return None
 
 
-def update_article(article_id: str, title_ko: str, summary_ko: str) -> bool:
-    """Update article with Korean title and summary."""
+def update_article(article_id: str, data: dict) -> bool:
+    """Update article with Korean fields."""
     url = f"{SUPABASE_URL}/rest/v1/articles"
     params = {"id": f"eq.{article_id}"}
-    data = {"title_ko": title_ko, "summary_ko": summary_ko}
-
     resp = httpx.patch(url, headers=HEADERS, params=params, json=data, timeout=15)
     return resp.status_code in (200, 204)
 
@@ -166,10 +161,10 @@ def main():
     print("=" * 50)
 
     articles = fetch_unsummarized(20)
-    print(f"[Found] {len(articles)} articles without Korean summary\n")
+    print(f"[Found] {len(articles)} articles to process\n")
 
     if not articles:
-        print("[Done] All articles already summarized.")
+        print("[Done] All articles already processed.")
         return
 
     success = 0
@@ -177,7 +172,6 @@ def main():
     for i, article in enumerate(articles):
         print(f"[{i+1}/{len(articles)}] {article['title'][:60]}...")
 
-        # Try to scrape article content
         content = extract_content(article["url"])
         if content:
             scraped += 1
@@ -187,8 +181,15 @@ def main():
 
         result = summarize_article(article["title"], article["url"], content)
         if result and "title_ko" in result and "summary_ko" in result:
-            if update_article(article["id"], result["title_ko"], result["summary_ko"]):
+            update_data = {
+                "title_ko": result["title_ko"],
+                "summary_ko": result["summary_ko"],
+                "content_ko": result.get("content_ko", ""),
+            }
+            if update_article(article["id"], update_data):
                 print(f"  -> {result['title_ko']}")
+                content_len = len(result.get("content_ko", ""))
+                print(f"     content_ko: {content_len} chars")
                 success += 1
             else:
                 print("  -> DB update failed")
@@ -197,7 +198,7 @@ def main():
 
         time.sleep(1)
 
-    print(f"\n[Done] {success}/{len(articles)} summarized ({scraped} with full content)")
+    print(f"\n[Done] {success}/{len(articles)} processed ({scraped} with full content)")
 
 
 if __name__ == "__main__":

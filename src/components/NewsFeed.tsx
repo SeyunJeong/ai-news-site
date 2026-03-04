@@ -33,7 +33,7 @@ export default function NewsFeed({ initialArticles, total }: NewsFeedProps) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-20 text-zinc-400 dark:text-zinc-500">
+        <div className="text-center py-20 text-zinc-400 dark:text-zinc-400">
           <p className="text-lg mb-2">아직 뉴스가 없습니다</p>
           <p className="text-sm">파이프라인이 실행되면 여기에 AI 뉴스가 표시됩니다.</p>
         </div>
@@ -50,7 +50,7 @@ export default function NewsFeed({ initialArticles, total }: NewsFeedProps) {
       )}
 
       {filtered.length > 0 && (
-        <div className="text-center py-6 text-sm text-zinc-400 dark:text-zinc-500">
+        <div className="text-center py-6 text-sm text-zinc-400 dark:text-zinc-400">
           {filtered.length}개의 뉴스 표시 중 (전체 {total}개)
         </div>
       )}

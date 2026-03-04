@@ -40,15 +40,18 @@ function getDomain(url: string): string {
   }
 }
 
-export default function NewsCard({ article }: { article: Article }) {
+interface NewsCardProps {
+  article: Article;
+  onClick: (article: Article) => void;
+}
+
+export default function NewsCard({ article, onClick }: NewsCardProps) {
   const sourceColor = SOURCE_COLORS[article.source] || "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400";
 
   return (
-    <a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block group"
+    <div
+      onClick={() => onClick(article)}
+      className="block group cursor-pointer"
     >
       <article className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-md">
         {/* Top meta row */}
@@ -109,6 +112,6 @@ export default function NewsCard({ article }: { article: Article }) {
           </div>
         )}
       </article>
-    </a>
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Article, ContentFilter } from "@/lib/types";
 import FilterTabs from "./FilterTabs";
 import NewsCard from "./NewsCard";
+import ArticleModal from "./ArticleModal";
 
 interface NewsFeedProps {
   initialArticles: Article[];
@@ -12,6 +13,7 @@ interface NewsFeedProps {
 
 export default function NewsFeed({ initialArticles, total }: NewsFeedProps) {
   const [filter, setFilter] = useState<ContentFilter>("all");
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
   const filtered =
     filter === "all"
@@ -38,7 +40,11 @@ export default function NewsFeed({ initialArticles, total }: NewsFeedProps) {
       ) : (
         <div className="grid gap-3">
           {filtered.map((article) => (
-            <NewsCard key={article.id} article={article} />
+            <NewsCard
+              key={article.id}
+              article={article}
+              onClick={setSelectedArticle}
+            />
           ))}
         </div>
       )}
@@ -47,6 +53,13 @@ export default function NewsFeed({ initialArticles, total }: NewsFeedProps) {
         <div className="text-center py-6 text-sm text-zinc-400 dark:text-zinc-500">
           {filtered.length}개의 뉴스 표시 중 (전체 {total}개)
         </div>
+      )}
+
+      {selectedArticle && (
+        <ArticleModal
+          article={selectedArticle}
+          onClose={() => setSelectedArticle(null)}
+        />
       )}
     </div>
   );

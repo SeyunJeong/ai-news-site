@@ -38,36 +38,117 @@ HEADERS = {
     "Prefer": "return=minimal",
 }
 
-AI_KEYWORDS = [
+# Strong AI keywords — title MUST contain at least one
+AI_KEYWORDS_STRONG = [
     "ai", "artificial intelligence", "machine learning", "deep learning",
     "llm", "large language model", "gpt", "claude", "gemini", "openai",
-    "anthropic", "transformer", "neural network", "diffusion",
+    "anthropic", "transformer", "neural network", "diffusion model",
     "stable diffusion", "midjourney", "chatgpt", "copilot",
-    "rag", "fine-tuning", "finetuning", "embedding", "vector",
-    "langchain", "llamaindex", "hugging face", "ollama",
-    "agent", "agentic", "mcp", "tool use",
+    "rag", "fine-tuning", "finetuning", "embedding", "vector database",
+    "langchain", "llamaindex", "hugging face", "ollama", "vllm",
+    "agentic", "mcp", "model context protocol",
+    "deepseek", "mistral", "llama", "qwen", "phi-",
+    "foundation model", "generative ai", "gen ai",
+    "text-to-image", "text-to-video", "text-to-speech",
+    "computer vision", "nlp", "natural language",
+    "reinforcement learning", "rlhf", "grpo",
+    "inference", "quantization", "lora", "qlora",
+    "benchmark", "leaderboard", "swe-bench",
+    "token", "context window", "multimodal",
+    "arxiv", "cs.ai", "cs.cl", "cs.lg", "cs.cv",
+]
+
+# Ambiguous words that need a second AI keyword to qualify
+WEAK_KEYWORDS = ["agent", "model", "training", "data", "tool", "api"]
+
+# Blacklist — definitely NOT AI news even if keywords match
+BLACKLIST_PATTERNS = [
+    "air con", "aircon", "air purifier", "paper airplane", "paper plane",
+    "airpod", "airfoil", "airline", "airport", "amazon prime air",
+    "air quality", "hvac", "weather", "flight", "drone delivery",
+    "real estate", "stock market", "cryptocurrency", "bitcoin",
+    "sports", "recipe", "cooking", "fashion", "celebrity",
 ]
 
 
-def is_ai_related(title: str, score_threshold: int = 0) -> bool:
-    """Check if a title is AI-related based on keywords."""
+def is_ai_related(title: str) -> bool:
+    """Strict check: title must be genuinely about AI/ML."""
     title_lower = title.lower()
-    return any(kw in title_lower for kw in AI_KEYWORDS)
+
+    # Blacklist check first
+    if any(bl in title_lower for bl in BLACKLIST_PATTERNS):
+        return False
+
+    # Strong keyword match
+    if any(kw in title_lower for kw in AI_KEYWORDS_STRONG):
+        return True
+
+    # Weak keyword needs at least 2 matches or 1 weak + context
+    weak_count = sum(1 for kw in WEAK_KEYWORDS if kw in title_lower)
+    if weak_count >= 2:
+        return True
+
+    return False
 
 
-def classify_content_type(title: str, source: str) -> str:
-    """Simple heuristic to classify content type."""
+def classify_content_type(title: str, source: str, subreddit: str = "") -> str:
+    """Improved heuristic to classify content type."""
     title_lower = title.lower()
-    if "arxiv" in source.lower() or "paper" in title_lower or "research" in title_lower:
+    sub_lower = subreddit.lower()
+
+    # Paper detection
+    if any(x in title_lower for x in [
+        "arxiv", "[r]", "paper", "research", "cs.ai", "cs.cl", "cs.lg", "cs.cv",
+        "nips", "icml", "iclr", "cvpr", "neurips", "aaai", "acl ",
+        "we propose", "we introduce", "we present", "benchmark",
+    ]):
         return "paper"
-    if any(w in title_lower for w in ["how to", "tutorial", "guide", "tip", "trick", "howto"]):
+
+    # Know-how / Tutorial
+    if any(x in title_lower for x in [
+        "how to", "how i", "tutorial", "guide", "tip", "trick", "howto",
+        "step by step", "walkthrough", "lesson", "learned",
+        "my experience", "i built", "i trained", "i made",
+        "best practice", "production", "deploy",
+    ]):
         return "knowhow"
-    if any(w in title_lower for w in ["use case", "case study", "built", "building", "shipped"]):
+
+    # Use case / Case study
+    if any(x in title_lower for x in [
+        "use case", "case study", "we built", "we shipped", "we replaced",
+        "at scale", "in production", "our stack", "our experience",
+        "startup", "company", "enterprise",
+    ]):
         return "usecase"
-    if any(w in title_lower for w in ["tool", "library", "framework", "release", "launch", "v2", "v3"]):
+
+    # Tool / Release
+    if any(x in title_lower for x in [
+        "release", "launch", "announcing", "introducing",
+        "v1", "v2", "v3", "v4", "v0.",
+        "open source", "open-source", "library", "framework", "sdk",
+        "show hn", "[p]", "cli", "playground",
+    ]):
         return "tool"
-    if any(w in title_lower for w in ["discuss", "opinion", "thought", "debate", "ask hn", "ask reddit"]):
+
+    # Discussion
+    if any(x in title_lower for x in [
+        "[d]", "discuss", "opinion", "thought", "debate",
+        "ask hn", "ask reddit", "what do you think",
+        "is it just me", "anyone else", "hot take",
+        "why ", "should we", "will ", "can ",
+        "rant", "unpopular opinion",
+    ]):
         return "discussion"
+
+    # Subreddit-based hints
+    if sub_lower in ["machinelearning"]:
+        if title_lower.startswith("[r]"):
+            return "paper"
+        if title_lower.startswith("[p]"):
+            return "tool"
+        if title_lower.startswith("[d]"):
+            return "discussion"
+
     return "news"
 
 
@@ -76,9 +157,9 @@ def fetch_hn_top_ai(limit: int = 30) -> list[dict[str, Any]]:
     print("[HN] Fetching AI stories...")
     articles = []
 
-    # Search HN for AI-related stories from last 24h
     url = "https://hn.algolia.com/api/v1/search"
-    queries = ["AI", "LLM", "machine learning", "GPT", "Claude", "OpenAI"]
+    queries = ["AI", "LLM", "machine learning", "GPT", "Claude", "OpenAI",
+               "deep learning", "neural network", "transformer"]
 
     seen_urls: set[str] = set()
 
@@ -89,7 +170,7 @@ def fetch_hn_top_ai(limit: int = 30) -> list[dict[str, Any]]:
                 params={
                     "query": query,
                     "tags": "story",
-                    "numericFilters": "points>5",
+                    "numericFilters": "points>10",
                     "hitsPerPage": 20,
                 },
                 timeout=15,
@@ -104,7 +185,9 @@ def fetch_hn_top_ai(limit: int = 30) -> list[dict[str, Any]]:
                 seen_urls.add(story_url)
 
                 title = hit.get("title", "")
-                if not is_ai_related(title) and query.lower() not in title.lower():
+
+                # Strict AI relevance check
+                if not is_ai_related(title):
                     continue
 
                 articles.append({
@@ -167,12 +250,17 @@ def fetch_reddit_ai(limit: int = 30) -> list[dict[str, Any]]:
                 if score < 10:
                     continue
 
+                # Reddit AI subreddits are already filtered by topic,
+                # but still check for obviously off-topic posts
+                if any(bl in title.lower() for bl in BLACKLIST_PATTERNS):
+                    continue
+
                 articles.append({
                     "title": title,
                     "url": post_url,
-                    "source": f"Reddit",
+                    "source": "Reddit",
                     "source_type": "community",
-                    "content_type": classify_content_type(title, f"Reddit r/{sub}"),
+                    "content_type": classify_content_type(title, "Reddit", sub),
                     "score": score,
                     "social_score": data.get("num_comments", 0),
                     "author": data.get("author"),
@@ -195,22 +283,18 @@ def upsert_articles(articles: list[dict[str, Any]]) -> int:
 
     print(f"[DB] Upserting {len(articles)} articles...")
 
-    # Add collected_at and ensure required fields
     now = datetime.now(timezone.utc).isoformat()
     for a in articles:
         a["collected_at"] = now
         a.setdefault("title_ko", None)
         a.setdefault("summary_ko", None)
         a.setdefault("thumbnail_url", None)
-        # Remove raw_data to keep payload small
         a.pop("raw_data", None)
 
-    # Supabase REST upsert (on conflict url)
     url = f"{SUPABASE_URL}/rest/v1/articles"
     headers = {**HEADERS, "Prefer": "return=minimal,resolution=merge-duplicates"}
 
     inserted = 0
-    # Batch in chunks of 50
     for i in range(0, len(articles), 50):
         batch = articles[i : i + 50]
         try:

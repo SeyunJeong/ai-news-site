@@ -1,11 +1,10 @@
 """
-AI News Pipeline - Korean Summarizer
-Fetches articles without Korean summaries, generates them via OpenAI GPT-4o-mini.
+AI News Pipeline - Korean Summarizer (with article body extraction)
+Fetches articles without Korean summaries, scrapes content, summarizes via GPT-4o-mini.
 
 Usage:
+  pip install -r requirements.txt
   python summarize.py
-
-Requires OPENAI_API_KEY in .env
 """
 
 import os
@@ -15,6 +14,12 @@ from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
+
+try:
+    import trafilatura
+except ImportError:
+    trafilatura = None
+    print("[Warn] trafilatura not installed, falling back to title-only summary")
 
 env_path = Path(__file__).parent / ".env"
 if not env_path.exists():
@@ -35,12 +40,22 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
-SYSTEM_PROMPT = """너는 AI/ML 뉴스 전문 번역가야. 영어 기사 제목과 URL을 보고:
-1. 한국어 제목 (자연스럽고 간결하게, 원문의 핵심을 살려서)
-2. 한국어 요약 (2-3문장, AI 엔지니어가 읽고 바로 가치를 판단할 수 있게)
+# Max chars to send to LLM (≈750 tokens) — keeps cost low
+MAX_CONTENT_CHARS = 3000
+
+SYSTEM_PROMPT = """너는 AI/ML 뉴스 전문 편집자야. 기사 본문을 읽고:
+1. 한국어 제목 (자연스럽고 간결하게, 핵심을 살려서)
+2. 한국어 요약 (3-4문장, AI 엔지니어가 읽고 핵심 내용과 의미를 파악할 수 있게)
 
 반드시 아래 JSON 형식으로만 응답해:
-{"title_ko": "한국어 제목", "summary_ko": "한국어 요약 2-3문장"}"""
+{"title_ko": "한국어 제목", "summary_ko": "한국어 요약 3-4문장"}"""
+
+SYSTEM_PROMPT_TITLE_ONLY = """너는 AI/ML 뉴스 전문 번역가야. 제목만 보고:
+1. 한국어 제목
+2. 한국어 요약 (2문장, 제목에서 추론 가능한 내용)
+
+반드시 아래 JSON 형식으로만 응답해:
+{"title_ko": "한국어 제목", "summary_ko": "한국어 요약"}"""
 
 
 def fetch_unsummarized(limit: int = 20) -> list[dict]:
@@ -59,18 +74,55 @@ def fetch_unsummarized(limit: int = 20) -> list[dict]:
     return []
 
 
-def summarize_article(title: str, url: str) -> dict | None:
+def extract_content(url: str) -> str | None:
+    """Scrape article URL and extract main text content."""
+    if not trafilatura:
+        return None
+
+    try:
+        # Download with timeout
+        downloaded = trafilatura.fetch_url(url)
+        if not downloaded:
+            return None
+
+        # Extract main content (no comments, no boilerplate)
+        text = trafilatura.extract(
+            downloaded,
+            include_comments=False,
+            include_tables=False,
+            no_fallback=True,
+        )
+
+        if not text or len(text) < 100:
+            return None
+
+        # Truncate to save tokens
+        if len(text) > MAX_CONTENT_CHARS:
+            text = text[:MAX_CONTENT_CHARS] + "..."
+
+        return text
+    except Exception as e:
+        print(f"    [Scrape] Failed: {e}")
+        return None
+
+
+def summarize_article(title: str, url: str, content: str | None) -> dict | None:
     """Generate Korean title and summary using GPT-4o-mini."""
-    prompt = f"제목: {title}\nURL: {url}"
+    if content:
+        system = SYSTEM_PROMPT
+        user_msg = f"제목: {title}\n\n본문:\n{content}"
+    else:
+        system = SYSTEM_PROMPT_TITLE_ONLY
+        user_msg = f"제목: {title}\nURL: {url}"
 
     payload = {
         "model": "gpt-4o-mini",
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
+            {"role": "system", "content": system},
+            {"role": "user", "content": user_msg},
         ],
         "temperature": 0.3,
-        "max_tokens": 300,
+        "max_tokens": 400,
     }
 
     try:
@@ -121,10 +173,19 @@ def main():
         return
 
     success = 0
+    scraped = 0
     for i, article in enumerate(articles):
         print(f"[{i+1}/{len(articles)}] {article['title'][:60]}...")
 
-        result = summarize_article(article["title"], article["url"])
+        # Try to scrape article content
+        content = extract_content(article["url"])
+        if content:
+            scraped += 1
+            print(f"    [Scrape] OK ({len(content)} chars)")
+        else:
+            print(f"    [Scrape] Failed, using title-only")
+
+        result = summarize_article(article["title"], article["url"], content)
         if result and "title_ko" in result and "summary_ko" in result:
             if update_article(article["id"], result["title_ko"], result["summary_ko"]):
                 print(f"  -> {result['title_ko']}")
@@ -136,7 +197,7 @@ def main():
 
         time.sleep(1)
 
-    print(f"\n[Done] {success}/{len(articles)} articles summarized")
+    print(f"\n[Done] {success}/{len(articles)} summarized ({scraped} with full content)")
 
 
 if __name__ == "__main__":

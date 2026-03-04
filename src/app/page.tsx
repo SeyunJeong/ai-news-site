@@ -13,6 +13,7 @@ export default async function Home() {
     month: "long",
     day: "numeric",
     weekday: "long",
+    timeZone: "Asia/Seoul",
   });
 
   return (

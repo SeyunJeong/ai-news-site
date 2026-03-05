@@ -13,6 +13,7 @@ Usage:
 import os
 import json
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
@@ -23,6 +24,11 @@ try:
 except ImportError:
     trafilatura = None
     print("[Warn] trafilatura not installed, falling back to title-only summary")
+
+try:
+    import htmldate
+except ImportError:
+    htmldate = None
 
 env_path = Path(__file__).parent / ".env"
 if not env_path.exists():
@@ -79,28 +85,48 @@ def fetch_unsummarized(limit: int = 20) -> list[dict]:
     return []
 
 
-def extract_content(url: str) -> str | None:
-    """Scrape article URL and extract main text content."""
+def extract_content(url: str) -> tuple[str | None, str | None]:
+    """Scrape article URL and extract main text + publication date.
+    Returns (text, pub_date) where pub_date is ISO format or None.
+    """
     if not trafilatura:
-        return None
+        return None, None
     try:
         downloaded = trafilatura.fetch_url(url)
         if not downloaded:
-            return None
+            return None, None
+
+        # Extract text content
         text = trafilatura.extract(
             downloaded,
             include_comments=False,
             include_tables=False,
             no_fallback=True,
         )
+
+        # Extract publication date using htmldate (more reliable)
+        iso_date = None
+        if htmldate:
+            try:
+                date_str = htmldate.find_date(
+                    downloaded, extensive_search=True, original_date=True
+                )
+                if date_str:
+                    dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                    iso_date = dt.isoformat()
+            except (ValueError, TypeError):
+                pass
+
         if not text or len(text) < 100:
-            return None
+            return None, iso_date
+
         if len(text) > MAX_CONTENT_CHARS:
             text = text[:MAX_CONTENT_CHARS] + "..."
-        return text
+
+        return text, iso_date
     except Exception as e:
         print(f"    [Scrape] Failed: {e}")
-        return None
+        return None, None
 
 
 def summarize_article(title: str, url: str, content: str | None) -> dict | None:
@@ -172,12 +198,14 @@ def main():
     for i, article in enumerate(articles):
         print(f"[{i+1}/{len(articles)}] {article['title'][:60]}...")
 
-        content = extract_content(article["url"])
+        content, pub_date = extract_content(article["url"])
         if content:
             scraped += 1
             print(f"    [Scrape] OK ({len(content)} chars)")
         else:
             print(f"    [Scrape] Failed, using title-only")
+        if pub_date:
+            print(f"    [Date] Original publication: {pub_date[:10]}")
 
         result = summarize_article(article["title"], article["url"], content)
         if result and "title_ko" in result and "summary_ko" in result:
@@ -186,6 +214,9 @@ def main():
                 "summary_ko": result["summary_ko"],
                 "content_ko": result.get("content_ko", ""),
             }
+            # Update published_at if we found the real publication date
+            if pub_date:
+                update_data["published_at"] = pub_date
             if update_article(article["id"], update_data):
                 print(f"  -> {result['title_ko']}")
                 content_len = len(result.get("content_ko", ""))

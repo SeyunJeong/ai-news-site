@@ -157,19 +157,7 @@ export default function ArticleModal({
           onTouchEnd={handleDragEnd}
         >
           <div className="w-10 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 drag-handle-hint" />
-          {articles.length > 1 && (
-            <p className="text-[10px] text-[var(--muted)] mt-1">
-              {currentIndex + 1} / {articles.length}
-            </p>
-          )}
         </div>
-
-        {/* Position indicator — desktop */}
-        {articles.length > 1 && (
-          <div className="absolute top-5 left-6 text-xs text-[var(--muted)] hidden sm:block">
-            {currentIndex + 1} / {articles.length}
-          </div>
-        )}
 
         {/* Close button — desktop */}
         <button

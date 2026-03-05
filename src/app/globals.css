@@ -93,3 +93,12 @@ body:is(.dark *) {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+
+/* Drag handle hint animation */
+@keyframes drag-hint {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+.drag-handle-hint {
+  animation: drag-hint 2s ease-in-out 1s 2;
+}

@@ -58,7 +58,9 @@ export default function NewsFeed({ initialArticles, total }: NewsFeedProps) {
       {selectedArticle && (
         <ArticleModal
           article={selectedArticle}
+          articles={filtered}
           onClose={() => setSelectedArticle(null)}
+          onNavigate={setSelectedArticle}
         />
       )}
     </div>

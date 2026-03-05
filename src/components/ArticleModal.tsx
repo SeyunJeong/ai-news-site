@@ -207,10 +207,10 @@ export default function ArticleModal({
             <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium">
               {article.source}
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300">
+            <span className="px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
               {TYPE_LABELS[article.content_type] || article.content_type}
             </span>
-            <span className="text-zinc-400 dark:text-zinc-300 ml-auto">
+            <span className="text-zinc-500 dark:text-zinc-400 ml-auto">
               {timeAgo(article.published_at)}
             </span>
           </div>
@@ -222,7 +222,7 @@ export default function ArticleModal({
 
           {/* Original title + 원문 link */}
           <div className="flex items-start gap-2 mb-5">
-            <p className="text-sm text-zinc-400 dark:text-zinc-300 flex-1 line-clamp-2">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 flex-1 line-clamp-2">
               {article.title}
             </p>
             <a
@@ -254,7 +254,7 @@ export default function ArticleModal({
           {/* Full Korean content */}
           {article.content_ko ? (
             <div className="mb-6">
-              <h3 className="text-xs font-semibold text-zinc-500 dark:text-zinc-300 uppercase tracking-wider mb-2">
+              <h3 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
                 전문 해석
               </h3>
               <div className="text-[15px] text-zinc-700 dark:text-zinc-300 leading-relaxed space-y-3">
@@ -265,7 +265,7 @@ export default function ArticleModal({
             </div>
           ) : article.summary_ko ? (
             <div className="mb-6">
-              <h3 className="text-xs font-semibold text-zinc-500 dark:text-zinc-300 uppercase tracking-wider mb-2">
+              <h3 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
                 요약
               </h3>
               <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed">
@@ -273,13 +273,13 @@ export default function ArticleModal({
               </p>
             </div>
           ) : (
-            <div className="mb-6 text-sm text-zinc-400 dark:text-zinc-300">
+            <div className="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
               한국어 해석이 아직 생성되지 않았습니다.
             </div>
           )}
 
           {/* Stats */}
-          <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-300">
+          <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
               <svg
                 className="w-4 h-4"
@@ -321,7 +321,7 @@ export default function ArticleModal({
               {article.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-xs px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300"
+                  className="text-xs px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
                 >
                   #{tag}
                 </span>

@@ -59,10 +59,10 @@ export default function NewsCard({ article, onClick }: NewsCardProps) {
           <span className={`px-2 py-0.5 rounded-full font-medium ${sourceColor}`}>
             {article.source}
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300">
+          <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
             {TYPE_LABELS[article.content_type] || article.content_type}
           </span>
-          <span className="text-zinc-400 dark:text-zinc-300 ml-auto">
+          <span className="text-zinc-500 dark:text-zinc-400 ml-auto">
             {timeAgo(article.published_at)}
           </span>
         </div>
@@ -74,7 +74,7 @@ export default function NewsCard({ article, onClick }: NewsCardProps) {
 
         {/* Original title if translated */}
         {article.title_ko && (
-          <p className="text-xs text-zinc-400 dark:text-zinc-300 mb-2 line-clamp-1">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2 line-clamp-1">
             {article.title}
           </p>
         )}
@@ -87,7 +87,7 @@ export default function NewsCard({ article, onClick }: NewsCardProps) {
         )}
 
         {/* Bottom row */}
-        <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-300">
+        <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -104,7 +104,7 @@ export default function NewsCard({ article, onClick }: NewsCardProps) {
             {article.tags.slice(0, 4).map((tag) => (
               <span
                 key={tag}
-                className="text-xs px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300"
+                className="text-xs px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
               >
                 #{tag}
               </span>

@@ -13,13 +13,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI News — AI 엔지니어를 위한 큐레이션 뉴스",
+  title: "MorgenAI — AI 엔지니어를 위한 큐레이션 뉴스",
   description:
     "매일 업데이트되는 AI 뉴스, 논문, 노하우, 사용사례를 한국어로 큐레이션합니다.",
   openGraph: {
-    title: "AI News",
+    title: "MorgenAI",
     description: "AI 엔지니어를 위한 큐레이션 뉴스",
     type: "website",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MorgenAI",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -30,6 +38,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="dark" suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" content="#121018" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#f5f0eb" media="(prefers-color-scheme: light)" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
